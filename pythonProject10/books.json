@@ -1,0 +1,22 @@
+{
+    "2": {
+        "id": 2,
+        "title": "Howl",
+        "author": "Allen Ginsberg"
+    },
+    "3": {
+        "id": 3,
+        "title": "Naked Lunch",
+        "author": "William S. Burroughs"
+    },
+    "4": {
+        "id": 4,
+        "title": "The Dharma Bums",
+        "author": "Jack Kerouac"
+    },
+    "5": {
+        "id": 5,
+        "title": "Big Sur",
+        "author": "Jack Kerouac"
+    }
+}

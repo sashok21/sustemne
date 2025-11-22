@@ -1,0 +1,106 @@
+<html>
+<head>
+<title>app.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cf8e6d;}
+.s1 { color: #bcbec4;}
+.s2 { color: #bcbec4;}
+.s3 { color: #2aacb8;}
+.s4 { color: #6aab73;}
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+app.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">json</span>
+<span class="s0">import </span><span class="s1">os</span>
+<span class="s0">from </span><span class="s1">starlette</span><span class="s2">.</span><span class="s1">applications </span><span class="s0">import </span><span class="s1">Starlette</span>
+<span class="s0">from </span><span class="s1">starlette</span><span class="s2">.</span><span class="s1">responses </span><span class="s0">import </span><span class="s1">JSONResponse</span>
+<span class="s0">from </span><span class="s1">starlette</span><span class="s2">.</span><span class="s1">routing </span><span class="s0">import </span><span class="s1">Route</span>
+
+
+<span class="s1">books_db </span><span class="s2">= {}</span>
+<span class="s1">next_id </span><span class="s2">= </span><span class="s3">1</span>
+<span class="s1">DATA_FILE </span><span class="s2">= </span><span class="s4">&quot;books.json&quot;</span>
+
+
+<span class="s0">def </span><span class="s1">save_to_file</span><span class="s2">():</span>
+    <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s1">DATA_FILE</span><span class="s2">, </span><span class="s4">&quot;w&quot;</span><span class="s2">, </span><span class="s1">encoding</span><span class="s2">=</span><span class="s4">&quot;utf-8&quot;</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+        <span class="s1">json</span><span class="s2">.</span><span class="s1">dump</span><span class="s2">(</span><span class="s1">books_db</span><span class="s2">, </span><span class="s1">f</span><span class="s2">, </span><span class="s1">ensure_ascii</span><span class="s2">=</span><span class="s0">False</span><span class="s2">, </span><span class="s1">indent</span><span class="s2">=</span><span class="s3">4</span><span class="s2">)</span>
+
+
+<span class="s0">def </span><span class="s1">load_from_file</span><span class="s2">():</span>
+    <span class="s0">global </span><span class="s1">books_db</span><span class="s2">, </span><span class="s1">next_id</span>
+    <span class="s0">if </span><span class="s1">os</span><span class="s2">.</span><span class="s1">path</span><span class="s2">.</span><span class="s1">exists</span><span class="s2">(</span><span class="s1">DATA_FILE</span><span class="s2">):</span>
+        <span class="s0">with </span><span class="s1">open</span><span class="s2">(</span><span class="s1">DATA_FILE</span><span class="s2">, </span><span class="s4">&quot;r&quot;</span><span class="s2">, </span><span class="s1">encoding</span><span class="s2">=</span><span class="s4">&quot;utf-8&quot;</span><span class="s2">) </span><span class="s0">as </span><span class="s1">f</span><span class="s2">:</span>
+            <span class="s1">books_db </span><span class="s2">= </span><span class="s1">json</span><span class="s2">.</span><span class="s1">load</span><span class="s2">(</span><span class="s1">f</span><span class="s2">)</span>
+        <span class="s0">if </span><span class="s1">books_db</span><span class="s2">:</span>
+            <span class="s1">next_id </span><span class="s2">= </span><span class="s1">max</span><span class="s2">(</span><span class="s1">int</span><span class="s2">(</span><span class="s1">i</span><span class="s2">) </span><span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">books_db</span><span class="s2">.</span><span class="s1">keys</span><span class="s2">()) + </span><span class="s3">1</span>
+
+
+<span class="s0">async def </span><span class="s1">list_books</span><span class="s2">(</span><span class="s1">request</span><span class="s2">):</span>
+    <span class="s0">return </span><span class="s1">JSONResponse</span><span class="s2">({</span><span class="s4">&quot;books&quot;</span><span class="s2">: </span><span class="s1">list</span><span class="s2">(</span><span class="s1">books_db</span><span class="s2">.</span><span class="s1">values</span><span class="s2">()), </span><span class="s4">&quot;total&quot;</span><span class="s2">: </span><span class="s1">len</span><span class="s2">(</span><span class="s1">books_db</span><span class="s2">)})</span>
+
+<span class="s0">async def </span><span class="s1">get_book</span><span class="s2">(</span><span class="s1">request</span><span class="s2">):</span>
+    <span class="s1">book_id </span><span class="s2">= </span><span class="s1">request</span><span class="s2">.</span><span class="s1">path_params</span><span class="s2">[</span><span class="s4">&quot;book_id&quot;</span><span class="s2">]</span>
+    <span class="s1">book </span><span class="s2">= </span><span class="s1">books_db</span><span class="s2">.</span><span class="s1">get</span><span class="s2">(</span><span class="s1">str</span><span class="s2">(</span><span class="s1">book_id</span><span class="s2">))</span>
+    <span class="s0">if not </span><span class="s1">book</span><span class="s2">:</span>
+        <span class="s0">return </span><span class="s1">JSONResponse</span><span class="s2">({</span><span class="s4">&quot;error&quot;</span><span class="s2">: </span><span class="s4">&quot;Book not found&quot;</span><span class="s2">}, </span><span class="s1">status_code</span><span class="s2">=</span><span class="s3">404</span><span class="s2">)</span>
+    <span class="s0">return </span><span class="s1">JSONResponse</span><span class="s2">(</span><span class="s1">book</span><span class="s2">)</span>
+
+<span class="s0">async def </span><span class="s1">create_book</span><span class="s2">(</span><span class="s1">request</span><span class="s2">):</span>
+    <span class="s0">global </span><span class="s1">next_id</span>
+    <span class="s1">data </span><span class="s2">= </span><span class="s0">await </span><span class="s1">request</span><span class="s2">.</span><span class="s1">json</span><span class="s2">()</span>
+    <span class="s1">book </span><span class="s2">= {</span><span class="s4">&quot;id&quot;</span><span class="s2">: </span><span class="s1">next_id</span><span class="s2">, </span><span class="s4">&quot;title&quot;</span><span class="s2">: </span><span class="s1">data</span><span class="s2">[</span><span class="s4">&quot;title&quot;</span><span class="s2">], </span><span class="s4">&quot;author&quot;</span><span class="s2">: </span><span class="s1">data</span><span class="s2">[</span><span class="s4">&quot;author&quot;</span><span class="s2">]}</span>
+    <span class="s1">books_db</span><span class="s2">[</span><span class="s1">str</span><span class="s2">(</span><span class="s1">next_id</span><span class="s2">)] = </span><span class="s1">book</span>
+    <span class="s1">next_id </span><span class="s2">+= </span><span class="s3">1</span>
+    <span class="s1">save_to_file</span><span class="s2">()</span>
+    <span class="s0">return </span><span class="s1">JSONResponse</span><span class="s2">(</span><span class="s1">book</span><span class="s2">, </span><span class="s1">status_code</span><span class="s2">=</span><span class="s3">201</span><span class="s2">)</span>
+
+<span class="s0">async def </span><span class="s1">update_book</span><span class="s2">(</span><span class="s1">request</span><span class="s2">):</span>
+    <span class="s1">book_id </span><span class="s2">= </span><span class="s1">request</span><span class="s2">.</span><span class="s1">path_params</span><span class="s2">[</span><span class="s4">&quot;book_id&quot;</span><span class="s2">]</span>
+    <span class="s1">data </span><span class="s2">= </span><span class="s0">await </span><span class="s1">request</span><span class="s2">.</span><span class="s1">json</span><span class="s2">()</span>
+    <span class="s0">if </span><span class="s1">str</span><span class="s2">(</span><span class="s1">book_id</span><span class="s2">) </span><span class="s0">not in </span><span class="s1">books_db</span><span class="s2">:</span>
+        <span class="s0">return </span><span class="s1">JSONResponse</span><span class="s2">({</span><span class="s4">&quot;error&quot;</span><span class="s2">: </span><span class="s4">&quot;Book not found&quot;</span><span class="s2">}, </span><span class="s1">status_code</span><span class="s2">=</span><span class="s3">404</span><span class="s2">)</span>
+    <span class="s1">books_db</span><span class="s2">[</span><span class="s1">str</span><span class="s2">(</span><span class="s1">book_id</span><span class="s2">)].</span><span class="s1">update</span><span class="s2">(</span><span class="s1">data</span><span class="s2">)</span>
+    <span class="s1">save_to_file</span><span class="s2">()</span>
+    <span class="s0">return </span><span class="s1">JSONResponse</span><span class="s2">(</span><span class="s1">books_db</span><span class="s2">[</span><span class="s1">str</span><span class="s2">(</span><span class="s1">book_id</span><span class="s2">)])</span>
+
+<span class="s0">async def </span><span class="s1">delete_book</span><span class="s2">(</span><span class="s1">request</span><span class="s2">):</span>
+    <span class="s1">book_id </span><span class="s2">= </span><span class="s1">request</span><span class="s2">.</span><span class="s1">path_params</span><span class="s2">[</span><span class="s4">&quot;book_id&quot;</span><span class="s2">]</span>
+    <span class="s0">if </span><span class="s1">str</span><span class="s2">(</span><span class="s1">book_id</span><span class="s2">) </span><span class="s0">not in </span><span class="s1">books_db</span><span class="s2">:</span>
+        <span class="s0">return </span><span class="s1">JSONResponse</span><span class="s2">({</span><span class="s4">&quot;error&quot;</span><span class="s2">: </span><span class="s4">&quot;Book not found&quot;</span><span class="s2">}, </span><span class="s1">status_code</span><span class="s2">=</span><span class="s3">404</span><span class="s2">)</span>
+    <span class="s0">del </span><span class="s1">books_db</span><span class="s2">[</span><span class="s1">str</span><span class="s2">(</span><span class="s1">book_id</span><span class="s2">)]</span>
+    <span class="s1">save_to_file</span><span class="s2">()</span>
+    <span class="s0">return </span><span class="s1">JSONResponse</span><span class="s2">({</span><span class="s4">&quot;message&quot;</span><span class="s2">: </span><span class="s4">&quot;Book deleted&quot;</span><span class="s2">})</span>
+
+
+<span class="s0">async def </span><span class="s1">startup</span><span class="s2">():</span>
+    <span class="s0">global </span><span class="s1">next_id</span>
+    <span class="s1">load_from_file</span><span class="s2">()</span>
+    <span class="s0">if not </span><span class="s1">books_db</span><span class="s2">:</span>
+        <span class="s1">books_db</span><span class="s2">.</span><span class="s1">update</span><span class="s2">({</span>
+            <span class="s4">&quot;1&quot;</span><span class="s2">: {</span><span class="s4">&quot;id&quot;</span><span class="s2">: </span><span class="s3">1</span><span class="s2">, </span><span class="s4">&quot;title&quot;</span><span class="s2">: </span><span class="s4">&quot;On the Road&quot;</span><span class="s2">, </span><span class="s4">&quot;author&quot;</span><span class="s2">: </span><span class="s4">&quot;Jack Kerouac&quot;</span><span class="s2">},</span>
+            <span class="s4">&quot;2&quot;</span><span class="s2">: {</span><span class="s4">&quot;id&quot;</span><span class="s2">: </span><span class="s3">2</span><span class="s2">, </span><span class="s4">&quot;title&quot;</span><span class="s2">: </span><span class="s4">&quot;Howl&quot;</span><span class="s2">, </span><span class="s4">&quot;author&quot;</span><span class="s2">: </span><span class="s4">&quot;Allen Ginsberg&quot;</span><span class="s2">},</span>
+            <span class="s4">&quot;3&quot;</span><span class="s2">: {</span><span class="s4">&quot;id&quot;</span><span class="s2">: </span><span class="s3">3</span><span class="s2">, </span><span class="s4">&quot;title&quot;</span><span class="s2">: </span><span class="s4">&quot;Naked Lunch&quot;</span><span class="s2">, </span><span class="s4">&quot;author&quot;</span><span class="s2">: </span><span class="s4">&quot;William S. Burroughs&quot;</span><span class="s2">},</span>
+        <span class="s2">})</span>
+        <span class="s1">next_id </span><span class="s2">= </span><span class="s3">4</span>
+        <span class="s1">save_to_file</span><span class="s2">()</span>
+
+
+<span class="s1">routes </span><span class="s2">= [</span>
+    <span class="s1">Route</span><span class="s2">(</span><span class="s4">&quot;/books&quot;</span><span class="s2">, </span><span class="s1">list_books</span><span class="s2">, </span><span class="s1">methods</span><span class="s2">=[</span><span class="s4">&quot;GET&quot;</span><span class="s2">]),</span>
+    <span class="s1">Route</span><span class="s2">(</span><span class="s4">&quot;/books&quot;</span><span class="s2">, </span><span class="s1">create_book</span><span class="s2">, </span><span class="s1">methods</span><span class="s2">=[</span><span class="s4">&quot;POST&quot;</span><span class="s2">]),</span>
+    <span class="s1">Route</span><span class="s2">(</span><span class="s4">&quot;/books/{book_id:int}&quot;</span><span class="s2">, </span><span class="s1">get_book</span><span class="s2">, </span><span class="s1">methods</span><span class="s2">=[</span><span class="s4">&quot;GET&quot;</span><span class="s2">]),</span>
+    <span class="s1">Route</span><span class="s2">(</span><span class="s4">&quot;/books/{book_id:int}&quot;</span><span class="s2">, </span><span class="s1">update_book</span><span class="s2">, </span><span class="s1">methods</span><span class="s2">=[</span><span class="s4">&quot;PUT&quot;</span><span class="s2">]),</span>
+    <span class="s1">Route</span><span class="s2">(</span><span class="s4">&quot;/books/{book_id:int}&quot;</span><span class="s2">, </span><span class="s1">delete_book</span><span class="s2">, </span><span class="s1">methods</span><span class="s2">=[</span><span class="s4">&quot;DELETE&quot;</span><span class="s2">]),</span>
+<span class="s2">]</span>
+
+<span class="s1">app </span><span class="s2">= </span><span class="s1">Starlette</span><span class="s2">(</span><span class="s1">debug</span><span class="s2">=</span><span class="s0">True</span><span class="s2">, </span><span class="s1">routes</span><span class="s2">=</span><span class="s1">routes</span><span class="s2">, </span><span class="s1">on_startup</span><span class="s2">=[</span><span class="s1">startup</span><span class="s2">])</span>
+</pre>
+</body>
+</html>
